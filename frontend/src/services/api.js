@@ -6,6 +6,11 @@ const api = axios.create({
   baseURL: API_URL,
 });
 
+// Styles
+export const getStyles = () => api.get('/styles');
+export const creerStyle = (data) => api.post('/styles', data);
+export const supprimerStyle = (id) => api.delete(`/styles/${id}`);
+
 // Livres
 export const getLivres = () => api.get('/livres');
 export const creerLivre = (data) => api.post('/livres', data);

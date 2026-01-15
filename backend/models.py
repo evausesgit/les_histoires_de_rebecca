@@ -1,8 +1,20 @@
-from sqlalchemy import Column, Integer, String, Text, DateTime, ForeignKey
+from sqlalchemy import Column, Integer, String, Text, DateTime, ForeignKey, Boolean
 from sqlalchemy.orm import relationship
 from datetime import datetime
 
 from database import Base
+
+
+class Style(Base):
+    __tablename__ = "styles"
+
+    id = Column(Integer, primary_key=True, index=True)
+    nom = Column(String(100), nullable=False, unique=True)
+    description = Column(Text, nullable=False)
+    est_predefini = Column(Boolean, default=False)
+    date_creation = Column(DateTime, default=datetime.utcnow)
+
+    livres = relationship("Livre", back_populates="style_rel")
 
 
 class Livre(Base):
@@ -11,8 +23,10 @@ class Livre(Base):
     id = Column(Integer, primary_key=True, index=True)
     titre = Column(String(255), nullable=False)
     description = Column(Text, nullable=True)
+    style_id = Column(Integer, ForeignKey("styles.id"), nullable=True)
     date_creation = Column(DateTime, default=datetime.utcnow)
 
+    style_rel = relationship("Style", back_populates="livres")
     chapitres = relationship("Chapitre", back_populates="livre", cascade="all, delete-orphan")
 
 
