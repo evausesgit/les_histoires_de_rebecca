@@ -25,6 +25,7 @@ export const supprimerChapitre = (id) => api.delete(`/chapitres/${id}`);
 // Contenus
 export const getContenus = (chapitreId) => api.get(`/chapitres/${chapitreId}/contenus`);
 export const creerContenu = (chapitreId, data) => api.post(`/chapitres/${chapitreId}/contenus`, data);
+export const supprimerContenu = (id) => api.delete(`/contenus/${id}`);
 
 // Génération
 export const genererHistoire = (chapitreId, prompt) =>

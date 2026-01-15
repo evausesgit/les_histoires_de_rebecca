@@ -213,6 +213,17 @@ def creer_contenu(chapitre_id: int, contenu: ContenuCreate, db: Session = Depend
     return db_contenu
 
 
+@app.delete("/contenus/{contenu_id}")
+def supprimer_contenu(contenu_id: int, db: Session = Depends(get_db)):
+    """Supprime un contenu"""
+    contenu = db.query(Contenu).filter(Contenu.id == contenu_id).first()
+    if not contenu:
+        raise HTTPException(status_code=404, detail="Contenu non trouvé")
+    db.delete(contenu)
+    db.commit()
+    return {"message": "Contenu supprimé"}
+
+
 # ==================== GÉNÉRATION ====================
 
 @app.post("/chapitres/{chapitre_id}/generer", response_model=ContenuResponse)
