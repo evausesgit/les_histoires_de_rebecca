@@ -1,0 +1,271 @@
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+  min-height: 100vh;
+}
+
+.app {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 20px;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Header */
+header {
+  text-align: center;
+  padding: 30px 0;
+  margin-bottom: 20px;
+}
+
+header h1 {
+  font-size: 2.5rem;
+  color: #5d4e6d;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+header .subtitle {
+  color: #8b7a9e;
+  font-style: italic;
+  margin-top: 10px;
+}
+
+/* Main */
+main {
+  flex: 1;
+  background: white;
+  border-radius: 20px;
+  padding: 30px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+}
+
+/* Footer */
+footer {
+  text-align: center;
+  padding: 20px;
+  color: #8b7a9e;
+}
+
+/* Boutons */
+button {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  background: linear-gradient(135deg, #a8e6cf 0%, #88d8b0 100%);
+  color: #2d5a4a;
+  font-weight: 600;
+}
+
+button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+button.danger {
+  background: linear-gradient(135deg, #ffb3ba 0%, #ff8a8a 100%);
+  color: #8b3a3a;
+}
+
+.btn-retour {
+  background: linear-gradient(135deg, #d4a5ff 0%, #b388ff 100%);
+  color: #4a2c7a;
+  margin-bottom: 20px;
+}
+
+/* Formulaires */
+.form-nouveau, .form-generation {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 30px;
+  flex-wrap: wrap;
+}
+
+.form-nouveau input, .form-generation textarea {
+  flex: 1;
+  min-width: 200px;
+  padding: 12px 15px;
+  border: 2px solid #e0d5f0;
+  border-radius: 10px;
+  font-size: 1rem;
+  transition: border-color 0.3s ease;
+}
+
+.form-nouveau input:focus, .form-generation textarea:focus {
+  outline: none;
+  border-color: #b388ff;
+}
+
+.form-generation {
+  flex-direction: column;
+}
+
+.form-generation textarea {
+  resize: vertical;
+  font-family: inherit;
+}
+
+/* Titres */
+h2 {
+  color: #5d4e6d;
+  margin-bottom: 20px;
+  padding-bottom: 10px;
+  border-bottom: 2px solid #e0d5f0;
+}
+
+/* Grille des livres */
+.livres-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 20px;
+}
+
+.livre-card {
+  background: linear-gradient(135deg, #ffeaa7 0%, #fdcb6e 100%);
+  border-radius: 15px;
+  padding: 20px;
+  transition: transform 0.3s ease;
+}
+
+.livre-card:hover {
+  transform: translateY(-5px);
+}
+
+.livre-card h3 {
+  color: #6c5b4e;
+  cursor: pointer;
+  margin-bottom: 10px;
+}
+
+.livre-card p {
+  color: #8b7355;
+  font-size: 0.9rem;
+  margin-bottom: 15px;
+}
+
+.livre-card .actions {
+  display: flex;
+  gap: 10px;
+}
+
+/* Liste des chapitres */
+.description {
+  color: #8b7a9e;
+  font-style: italic;
+  margin-bottom: 20px;
+}
+
+.chapitres-liste {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.chapitre-item {
+  background: linear-gradient(135deg, #dfe6e9 0%, #b2bec3 100%);
+  border-radius: 15px;
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  flex-wrap: wrap;
+}
+
+.chapitre-item .ordre {
+  background: #5d4e6d;
+  color: white;
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.chapitre-item h3 {
+  flex: 1;
+  color: #2d3436;
+  cursor: pointer;
+  margin: 0;
+}
+
+.chapitre-item .actions {
+  display: flex;
+  gap: 10px;
+}
+
+/* Éditeur */
+.editeur h2 {
+  color: #5d4e6d;
+}
+
+.contenus {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.contenu-card {
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border-radius: 15px;
+  padding: 25px;
+  border-left: 5px solid #b388ff;
+}
+
+.contenu-card .prompt {
+  background: #e0d5f0;
+  padding: 10px 15px;
+  border-radius: 10px;
+  margin-bottom: 15px;
+  color: #5d4e6d;
+  font-size: 0.9rem;
+}
+
+.contenu-card .histoire {
+  line-height: 1.8;
+  color: #2d3436;
+  font-size: 1.1rem;
+  white-space: pre-wrap;
+}
+
+/* Empty state */
+.empty {
+  text-align: center;
+  color: #8b7a9e;
+  padding: 40px;
+  font-style: italic;
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  header h1 {
+    font-size: 1.8rem;
+  }
+
+  main {
+    padding: 20px;
+  }
+
+  .form-nouveau, .chapitre-item {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .chapitre-item .actions {
+    justify-content: center;
+  }
+}
