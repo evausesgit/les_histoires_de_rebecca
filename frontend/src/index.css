@@ -272,3 +272,119 @@ button:focus-visible {
     color: #666;
   }
 }
+
+/* Bouton Lire */
+.btn-lire {
+  background: linear-gradient(135deg, #4a90a4 0%, #357a8c 100%);
+  border: none;
+  color: white;
+}
+
+.btn-lire:hover {
+  background: linear-gradient(135deg, #357a8c 0%, #2a6070 100%);
+}
+
+/* Mode Lecteur */
+.lecteur {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  z-index: 1000;
+  overflow-y: auto;
+  padding: 20px;
+}
+
+.btn-retour-lecteur {
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  z-index: 1001;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+}
+
+.livre-ouvert {
+  max-width: 800px;
+  margin: 60px auto 40px;
+  background: linear-gradient(to right, #f5f0e6 0%, #faf7f2 5%, #faf7f2 95%, #f5f0e6 100%);
+  border-radius: 8px;
+  box-shadow:
+    0 10px 40px rgba(0, 0, 0, 0.4),
+    inset 0 0 80px rgba(0, 0, 0, 0.05);
+  padding: 50px 60px;
+  color: #2c2c2c;
+  min-height: 80vh;
+}
+
+.livre-ouvert .titre-chapitre {
+  text-align: center;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 2rem;
+  font-weight: normal;
+  color: #3a3a3a;
+  margin-bottom: 40px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #d0c8b8;
+}
+
+.livre-ouvert .pages {
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 1.1rem;
+  line-height: 1.9;
+}
+
+.livre-ouvert .page {
+  margin-bottom: 30px;
+}
+
+.livre-ouvert .texte-livre p {
+  text-indent: 2em;
+  margin-bottom: 1em;
+  text-align: justify;
+}
+
+.livre-ouvert .texte-livre p:first-child {
+  text-indent: 0;
+}
+
+.livre-ouvert .texte-livre p:first-child::first-letter {
+  font-size: 3em;
+  float: left;
+  line-height: 0.8;
+  margin-right: 8px;
+  margin-top: 5px;
+  color: #646cff;
+  font-weight: bold;
+}
+
+.livre-ouvert .separateur {
+  border: none;
+  text-align: center;
+  margin: 40px 0;
+}
+
+.livre-ouvert .separateur::before {
+  content: "* * *";
+  color: #a0a0a0;
+  letter-spacing: 1em;
+}
+
+.livre-ouvert .empty {
+  text-align: center;
+  color: #888;
+  font-style: italic;
+}
+
+@media (prefers-color-scheme: light) {
+  .lecteur {
+    background: linear-gradient(135deg, #e8e4df 0%, #d5cfc7 100%);
+  }
+
+  .btn-retour-lecteur {
+    background: rgba(0, 0, 0, 0.1);
+    color: #333;
+  }
+}

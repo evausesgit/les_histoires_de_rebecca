@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { getChapitres, creerChapitre, supprimerChapitre } from '../services/api';
 
-function ListeChapitres({ livre, onSelectChapitre, onRetour }) {
+function ListeChapitres({ livre, onSelectChapitre, onLireChapitre, onRetour }) {
   const [chapitres, setChapitres] = useState([]);
   const [nouveauTitre, setNouveauTitre] = useState('');
   const [loading, setLoading] = useState(true);
@@ -73,6 +73,7 @@ function ListeChapitres({ livre, onSelectChapitre, onRetour }) {
               <span className="ordre">Chapitre {chapitre.ordre}</span>
               <h3 onClick={() => onSelectChapitre(chapitre)}>{chapitre.titre}</h3>
               <div className="actions">
+                <button onClick={() => onLireChapitre(chapitre)} className="btn-lire">Lire</button>
                 <button onClick={() => onSelectChapitre(chapitre)}>Écrire</button>
                 <button onClick={() => handleSupprimer(chapitre.id)} className="danger">
                   Supprimer

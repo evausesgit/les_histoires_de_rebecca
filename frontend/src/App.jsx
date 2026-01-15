@@ -2,28 +2,39 @@ import { useState } from 'react';
 import ListeLivres from './components/ListeLivres';
 import ListeChapitres from './components/ListeChapitres';
 import Editeur from './components/Editeur';
+import Lecteur from './components/Lecteur';
 import './App.css';
 
 function App() {
   const [livreSelectionne, setLivreSelectionne] = useState(null);
   const [chapitreSelectionne, setChapitreSelectionne] = useState(null);
+  const [modeLecture, setModeLecture] = useState(false);
 
   const handleSelectLivre = (livre) => {
     setLivreSelectionne(livre);
     setChapitreSelectionne(null);
+    setModeLecture(false);
   };
 
   const handleSelectChapitre = (chapitre) => {
     setChapitreSelectionne(chapitre);
+    setModeLecture(false);
+  };
+
+  const handleLireChapitre = (chapitre) => {
+    setChapitreSelectionne(chapitre);
+    setModeLecture(true);
   };
 
   const handleRetourLivres = () => {
     setLivreSelectionne(null);
     setChapitreSelectionne(null);
+    setModeLecture(false);
   };
 
   const handleRetourChapitres = () => {
     setChapitreSelectionne(null);
+    setModeLecture(false);
   };
 
   return (
@@ -42,12 +53,20 @@ function App() {
           <ListeChapitres
             livre={livreSelectionne}
             onSelectChapitre={handleSelectChapitre}
+            onLireChapitre={handleLireChapitre}
             onRetour={handleRetourLivres}
           />
         )}
 
-        {chapitreSelectionne && (
+        {chapitreSelectionne && !modeLecture && (
           <Editeur
+            chapitre={chapitreSelectionne}
+            onRetour={handleRetourChapitres}
+          />
+        )}
+
+        {chapitreSelectionne && modeLecture && (
+          <Lecteur
             chapitre={chapitreSelectionne}
             onRetour={handleRetourChapitres}
           />
