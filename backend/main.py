@@ -1,7 +1,10 @@
 from fastapi import FastAPI, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session, joinedload
 from typing import List
+import os
 
 from database import engine, get_db, Base
 from models import Livre, Chapitre, Contenu, Style
@@ -267,6 +270,26 @@ def generer_preview(request: GenerationRequest):
 
 # ==================== ROOT ====================
 
-@app.get("/")
-def root():
-    return {"message": "Bienvenue dans Les Histoires de Rebecca!"}
+# Chemin vers les fichiers statiques du frontend
+STATIC_DIR = os.path.join(os.path.dirname(__file__), "static")
+
+# Servir les fichiers statiques du frontend si le dossier existe
+if os.path.exists(STATIC_DIR):
+    # Monter les assets statiques
+    app.mount("/assets", StaticFiles(directory=os.path.join(STATIC_DIR, "assets")), name="assets")
+
+    @app.get("/")
+    def serve_frontend():
+        return FileResponse(os.path.join(STATIC_DIR, "index.html"))
+
+    @app.get("/{path:path}")
+    def serve_frontend_routes(path: str):
+        # Pour le SPA routing - renvoyer index.html pour les routes non-API
+        file_path = os.path.join(STATIC_DIR, path)
+        if os.path.exists(file_path) and os.path.isfile(file_path):
+            return FileResponse(file_path)
+        return FileResponse(os.path.join(STATIC_DIR, "index.html"))
+else:
+    @app.get("/")
+    def root():
+        return {"message": "Bienvenue dans Les Histoires de Rebecca!"}
