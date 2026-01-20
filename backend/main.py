@@ -242,8 +242,25 @@ def generer_contenu(chapitre_id: int, request: GenerationRequest, db: Session = 
     if livre and livre.style_rel:
         style_description = livre.style_rel.description
 
+    # Récupérer les chapitres précédents pour le contexte
+    chapitres_precedents = db.query(Chapitre).filter(
+        Chapitre.livre_id == chapitre.livre_id,
+        Chapitre.ordre < chapitre.ordre
+    ).order_by(Chapitre.ordre).all()
+
+    # Construire le contexte des chapitres précédents
+    contexte_precedent = []
+    for chap in chapitres_precedents:
+        contenus = db.query(Contenu).filter(Contenu.chapitre_id == chap.id).all()
+        textes = [c.texte_genere for c in contenus if c.texte_genere]
+        if textes:
+            contexte_precedent.append({
+                "titre": chap.titre,
+                "contenu": "\n\n".join(textes)
+            })
+
     try:
-        texte_genere = generer_histoire(request.prompt, style_description)
+        texte_genere = generer_histoire(request.prompt, style_description, contexte_precedent)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 

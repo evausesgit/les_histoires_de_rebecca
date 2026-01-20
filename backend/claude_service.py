@@ -1,21 +1,21 @@
 import subprocess
-import shlex
 import os
 import logging
-from typing import Optional
+from typing import Optional, List, Dict
 
 # Configuration du logging
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 
-def generer_histoire(prompt: str, style: Optional[str] = None) -> str:
+def generer_histoire(prompt: str, style: Optional[str] = None, chapitres_precedents: Optional[List[Dict]] = None) -> str:
     """
     Appelle Claude CLI pour générer une histoire pour enfant.
 
     Args:
         prompt: Le thème ou l'idée de l'histoire fourni par l'utilisateur
         style: La description du style d'écriture à utiliser (optionnel)
+        chapitres_precedents: Liste des chapitres précédents avec leur titre et contenu (optionnel)
 
     Returns:
         Le texte généré par Claude
@@ -48,17 +48,26 @@ def generer_histoire(prompt: str, style: Optional[str] = None) -> str:
     logger.debug(f"claude --version: {version_result.stdout.strip()}")
     logger.debug(f"claude --version stderr: {version_result.stderr.strip()}")
 
+    # Construire l'instruction de style
     style_instruction = ""
     if style:
-        style_instruction = f"\n- Avec {style}"
+        style_instruction = f"\n- Style d'écriture : {style}"
+
+    # Construire le contexte des chapitres précédents
+    contexte_histoire = ""
+    if chapitres_precedents and len(chapitres_precedents) > 0:
+        logger.debug(f"Nombre de chapitres précédents: {len(chapitres_precedents)}")
+        contexte_histoire = "\n\n=== CHAPITRES PRÉCÉDENTS (pour cohérence) ===\n"
+        for chap in chapitres_precedents:
+            contexte_histoire += f"\n--- {chap['titre']} ---\n{chap['contenu']}\n"
+        contexte_histoire += "\n=== FIN DES CHAPITRES PRÉCÉDENTS ===\n"
 
     prompt_complet = f"""Tu es un auteur de roman.
-
-Génère un chapitre de livre inspiré du thème suivant :
+{contexte_histoire}
+Génère le prochain chapitre de livre inspiré du thème suivant :
 {prompt}
 
-Contraintes du chapitre :
-- Respecte ce style d'écriture : {style_instruction}
+Contraintes du chapitre :{style_instruction}
 - Longueur : environ 900 à 1600 mots
 - Le chapitre doit raconter une histoire complète avec :
   1) Une scène d'ouverture immersive (lieu + ambiance + action)
@@ -70,9 +79,11 @@ Contraintes du chapitre :
   7) Une fin qui donne envie de lire la suite (mini cliffhanger)
 
 Règles d'écriture :
-- Écris directement le chapitre, sans introduction ni commentaire.
+- NE PAS écrire de numéro de chapitre au début (pas de "Chapitre 1", "Chapitre 2", etc.)
+- Écris directement le chapitre, sans introduction ni commentaire
 - Utilise un rythme fluide : narration + dialogues + descriptions équilibrés
-- Reste cohérent : personnages, lieux, ton, époque, logique interne
+- Reste cohérent avec les chapitres précédents : mêmes personnages, lieux, ton, époque, logique interne
+- Les personnages doivent garder leur personnalité et leurs caractéristiques établies
 
 Écris maintenant le chapitre."""
 
