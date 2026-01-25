@@ -11,7 +11,7 @@ function App() {
   const [chapitreSelectionne, setChapitreSelectionne] = useState(null);
   const [modeLecture, setModeLecture] = useState(false);
   const [theme, setTheme] = useState(() => {
-    return localStorage.getItem('theme') || 'ocean';
+    return localStorage.getItem('theme') || 'foret';
   });
 
   useEffect(() => {
