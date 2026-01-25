@@ -208,19 +208,27 @@ function ListeLivres({ onSelectLivre }) {
         ) : (
           livres.map((livre) => (
             <div key={livre.id} className="livre-card" onClick={() => onSelectLivre(livre)}>
-              <h3>{livre.titre}</h3>
-              {livre.description && <p className="livre-description">{livre.description}</p>}
-              {livre.style && <span className="livre-style">{livre.style.nom}</span>}
-              <div className="actions">
-                <button onClick={(e) => { e.stopPropagation(); onSelectLivre(livre); }}>
-                  Ouvrir
-                </button>
-                <button
-                  onClick={(e) => { e.stopPropagation(); handleSupprimer(livre.id); }}
-                  className="danger"
-                >
-                  Supprimer
-                </button>
+              <div className="livre-card-content">
+                <h3>{livre.titre}</h3>
+                <p className="livre-description">{livre.description || 'Aucune description'}</p>
+              </div>
+              <div className="livre-footer">
+                {livre.style ? (
+                  <span className="livre-style">{livre.style.nom}</span>
+                ) : (
+                  <span></span>
+                )}
+                <div className="actions">
+                  <button onClick={(e) => { e.stopPropagation(); onSelectLivre(livre); }}>
+                    Ouvrir
+                  </button>
+                  <button
+                    onClick={(e) => { e.stopPropagation(); handleSupprimer(livre.id); }}
+                    className="danger"
+                  >
+                    Supprimer
+                  </button>
+                </div>
               </div>
             </div>
           ))

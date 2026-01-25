@@ -1,14 +1,23 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import ListeLivres from './components/ListeLivres';
 import ListeChapitres from './components/ListeChapitres';
 import Editeur from './components/Editeur';
 import Lecteur from './components/Lecteur';
+import Menu from './components/Menu';
 import './App.css';
 
 function App() {
   const [livreSelectionne, setLivreSelectionne] = useState(null);
   const [chapitreSelectionne, setChapitreSelectionne] = useState(null);
   const [modeLecture, setModeLecture] = useState(false);
+  const [theme, setTheme] = useState(() => {
+    return localStorage.getItem('theme') || 'ocean';
+  });
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('theme', theme);
+  }, [theme]);
 
   const handleSelectLivre = (livre) => {
     setLivreSelectionne(livre);
@@ -39,6 +48,8 @@ function App() {
 
   return (
     <div className="app">
+      <Menu currentTheme={theme} onThemeChange={setTheme} />
+
       <header>
         <h1>Les Histoires de Rebecca</h1>
         <p className="subtitle">Des histoires magiques créées avec amour</p>
