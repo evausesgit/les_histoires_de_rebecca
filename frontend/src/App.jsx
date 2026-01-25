@@ -51,7 +51,7 @@ function App() {
       <Menu currentTheme={theme} onThemeChange={setTheme} />
 
       <header>
-        <h1>Les Histoires de Rebecca</h1>
+        <h1>Les Histoires de BK</h1>
         <p className="subtitle">Des histoires magiques créées avec amour</p>
       </header>
 
