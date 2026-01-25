@@ -85,6 +85,13 @@ Règles d'écriture :
 - Reste cohérent avec les chapitres précédents : mêmes personnages, lieux, ton, époque, logique interne
 - Les personnages doivent garder leur personnalité et leurs caractéristiques établies
 
+IMPORTANT - Respect strict de la description :
+- Suis UNIQUEMENT ce qui est décrit dans le thème/description fourni
+- N'invente PAS de nouveaux personnages qui ne sont pas mentionnés dans la description
+- N'ajoute PAS de lieux, d'événements ou de contextes non spécifiés dans la description
+- Si la description mentionne des personnages spécifiques, utilise SEULEMENT ces personnages
+- Reste fidèle à 100% aux éléments donnés, sans extrapolation ni ajout créatif non demandé
+
 Écris maintenant le chapitre."""
 
     try:
