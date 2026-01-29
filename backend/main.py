@@ -260,14 +260,21 @@ def generer_contenu(chapitre_id: int, request: GenerationRequest, db: Session = 
             })
 
     try:
-        texte_genere = generer_histoire(request.prompt, style_description, contexte_precedent)
+        resultat = generer_histoire(
+            request.prompt,
+            style_description,
+            contexte_precedent,
+            request.niveau_strictesse or "modere"
+        )
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
     db_contenu = Contenu(
         chapitre_id=chapitre_id,
         texte_utilisateur=request.prompt,
-        texte_genere=texte_genere
+        texte_genere=resultat["texte"],
+        resume=resultat["resume"],
+        niveau_strictesse=request.niveau_strictesse or "modere"
     )
     db.add(db_contenu)
     db.commit()

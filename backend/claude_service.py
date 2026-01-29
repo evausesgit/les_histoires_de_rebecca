@@ -8,7 +8,7 @@ logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 
-def generer_histoire(prompt: str, style: Optional[str] = None, chapitres_precedents: Optional[List[Dict]] = None) -> str:
+def generer_histoire(prompt: str, style: Optional[str] = None, chapitres_precedents: Optional[List[Dict]] = None, niveau_strictesse: str = "modere") -> Dict[str, str]:
     """
     Appelle Claude CLI pour générer une histoire pour enfant.
 
@@ -16,9 +16,10 @@ def generer_histoire(prompt: str, style: Optional[str] = None, chapitres_precede
         prompt: Le thème ou l'idée de l'histoire fourni par l'utilisateur
         style: La description du style d'écriture à utiliser (optionnel)
         chapitres_precedents: Liste des chapitres précédents avec leur titre et contenu (optionnel)
+        niveau_strictesse: Niveau de fidélité à la description (libre, modere, strict)
 
     Returns:
-        Le texte généré par Claude
+        Dict avec 'texte' (le chapitre) et 'resume' (le résumé des éléments ajoutés)
     """
 
     # DEBUG: Afficher les infos d'environnement
@@ -62,6 +63,31 @@ def generer_histoire(prompt: str, style: Optional[str] = None, chapitres_precede
             contexte_histoire += f"\n--- {chap['titre']} ---\n{chap['contenu']}\n"
         contexte_histoire += "\n=== FIN DES CHAPITRES PRÉCÉDENTS ===\n"
 
+    # Instructions selon le niveau de strictesse
+    if niveau_strictesse == "libre":
+        strictesse_instruction = """
+LIBERTÉ CRÉATIVE :
+- Tu peux ajouter librement de nouveaux personnages secondaires si cela enrichit l'histoire
+- Tu peux inventer des lieux, des détails et des sous-intrigues
+- La description sert de point de départ, tu peux l'enrichir créativement
+- Laisse libre cours à ton imagination tout en gardant une cohérence narrative"""
+    elif niveau_strictesse == "strict":
+        strictesse_instruction = """
+STRICTESSE MAXIMALE :
+- Suis UNIQUEMENT et EXACTEMENT ce qui est décrit dans la description
+- N'invente AUCUN nouveau personnage non mentionné
+- N'ajoute AUCUN lieu, événement ou contexte non spécifié
+- Utilise SEULEMENT les éléments explicitement donnés
+- Zéro extrapolation, zéro ajout créatif non demandé
+- Si un détail n'est pas mentionné, ne l'invente pas"""
+    else:  # modere (par défaut)
+        strictesse_instruction = """
+FIDÉLITÉ MODÉRÉE :
+- Respecte les éléments principaux de la description (personnages, lieu, intrigue)
+- Tu peux ajouter des détails mineurs pour enrichir la narration (descriptions, ambiance)
+- Évite d'introduire de nouveaux personnages importants non mentionnés
+- Les ajouts doivent rester cohérents avec ce qui est décrit"""
+
     prompt_complet = f"""Tu es un auteur de roman.
 {contexte_histoire}
 Génère le prochain chapitre de livre inspiré du thème suivant :
@@ -84,15 +110,22 @@ Règles d'écriture :
 - Utilise un rythme fluide : narration + dialogues + descriptions équilibrés
 - Reste cohérent avec les chapitres précédents : mêmes personnages, lieux, ton, époque, logique interne
 - Les personnages doivent garder leur personnalité et leurs caractéristiques établies
+{strictesse_instruction}
 
-IMPORTANT - Respect strict de la description :
-- Suis UNIQUEMENT ce qui est décrit dans le thème/description fourni
-- N'invente PAS de nouveaux personnages qui ne sont pas mentionnés dans la description
-- N'ajoute PAS de lieux, d'événements ou de contextes non spécifiés dans la description
-- Si la description mentionne des personnages spécifiques, utilise SEULEMENT ces personnages
-- Reste fidèle à 100% aux éléments donnés, sans extrapolation ni ajout créatif non demandé
+=== FORMAT DE RÉPONSE ===
+Tu dois répondre en DEUX parties séparées par la ligne "---RESUME---" :
 
-Écris maintenant le chapitre."""
+1) D'abord le chapitre complet
+
+---RESUME---
+
+2) Puis un résumé concis (3-5 lignes max) qui liste :
+- Les nouveaux personnages introduits (si applicable)
+- Les nouveaux lieux découverts (si applicable)
+- Les éléments d'intrigue ajoutés ou révélés
+- Les points clés à retenir pour la suite
+
+Écris maintenant le chapitre suivi du résumé."""
 
     try:
         logger.debug("Lancement de la commande claude...")
@@ -115,7 +148,19 @@ IMPORTANT - Respect strict de la description :
             logger.error(f"Claude CLI error: {result.stderr}")
             raise Exception(f"Erreur Claude CLI: {result.stderr}")
 
-        return result.stdout.strip()
+        # Parser la réponse pour séparer le chapitre du résumé
+        output = result.stdout.strip()
+
+        if "---RESUME---" in output:
+            parts = output.split("---RESUME---", 1)
+            texte = parts[0].strip()
+            resume = parts[1].strip() if len(parts) > 1 else ""
+        else:
+            # Si le séparateur n'est pas trouvé, tout est considéré comme texte
+            texte = output
+            resume = ""
+
+        return {"texte": texte, "resume": resume}
 
     except subprocess.TimeoutExpired:
         logger.error("Timeout expired")

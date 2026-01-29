@@ -74,6 +74,8 @@ class ContenuResponse(ContenuBase):
     id: int
     chapitre_id: int
     texte_genere: Optional[str] = None
+    resume: Optional[str] = None
+    niveau_strictesse: Optional[str] = None
     date_creation: datetime
 
     class Config:
@@ -83,7 +85,9 @@ class ContenuResponse(ContenuBase):
 # Schema pour la génération de texte
 class GenerationRequest(BaseModel):
     prompt: str
+    niveau_strictesse: Optional[str] = "modere"  # libre, modere, strict
 
 
 class GenerationResponse(BaseModel):
     texte_genere: str
+    resume: Optional[str] = None

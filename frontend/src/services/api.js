@@ -30,8 +30,8 @@ export const creerContenu = (chapitreId, data) => api.post(`/chapitres/${chapitr
 export const supprimerContenu = (id) => api.delete(`/contenus/${id}`);
 
 // Génération
-export const genererHistoire = (chapitreId, prompt) =>
-  api.post(`/chapitres/${chapitreId}/generer`, { prompt });
+export const genererHistoire = (chapitreId, prompt, niveauStrictesse = 'modere') =>
+  api.post(`/chapitres/${chapitreId}/generer`, { prompt, niveau_strictesse: niveauStrictesse });
 export const genererPreview = (prompt) =>
   api.post('/generer-preview', { prompt });
 

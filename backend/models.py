@@ -50,6 +50,8 @@ class Contenu(Base):
     chapitre_id = Column(Integer, ForeignKey("chapitres.id"), nullable=False)
     texte_utilisateur = Column(Text, nullable=True)
     texte_genere = Column(Text, nullable=True)
+    resume = Column(Text, nullable=True)  # Résumé "Idée" auto-généré
+    niveau_strictesse = Column(String(20), nullable=True)  # libre, modere, strict
     date_creation = Column(DateTime, default=datetime.utcnow)
 
     chapitre = relationship("Chapitre", back_populates="contenus")
