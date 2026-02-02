@@ -147,7 +147,8 @@ Tu dois répondre en DEUX parties séparées par la ligne "---RESUME---" :
         logger.debug(f"Prompt length: {len(prompt_complet)} chars")
 
         result = subprocess.run(
-            ["claude", "-p", prompt_complet],
+            ["claude", "-p", "-"],
+            input=prompt_complet,
             capture_output=True,
             text=True,
             timeout=120,
