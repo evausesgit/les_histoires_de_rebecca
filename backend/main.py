@@ -6,8 +6,32 @@ from sqlalchemy.orm import Session, joinedload
 from typing import List
 import os
 
+from sqlalchemy import text
 from database import engine, get_db, Base
 from models import Livre, Chapitre, Contenu, Style
+
+
+def migrer_base():
+    """Ajoute les colonnes manquantes à la base de données"""
+    with engine.connect() as conn:
+        # Vérifier et ajouter les colonnes manquantes à la table contenus
+        try:
+            conn.execute(text("SELECT resume FROM contenus LIMIT 1"))
+        except:
+            conn.execute(text("ALTER TABLE contenus ADD COLUMN resume TEXT"))
+            conn.commit()
+
+        try:
+            conn.execute(text("SELECT niveau_strictesse FROM contenus LIMIT 1"))
+        except:
+            conn.execute(text("ALTER TABLE contenus ADD COLUMN niveau_strictesse VARCHAR(20)"))
+            conn.commit()
+
+        try:
+            conn.execute(text("SELECT types_faits FROM contenus LIMIT 1"))
+        except:
+            conn.execute(text("ALTER TABLE contenus ADD COLUMN types_faits VARCHAR(200)"))
+            conn.commit()
 from schemas import (
     LivreCreate, LivreResponse,
     ChapitreCreate, ChapitreResponse,
@@ -61,9 +85,13 @@ app.add_middleware(
 )
 
 
-# Initialisation des styles au démarrage
+# Initialisation au démarrage
 @app.on_event("startup")
 def startup_event():
+    # Migration de la base de données
+    migrer_base()
+
+    # Initialisation des styles
     from database import SessionLocal
     db = SessionLocal()
     try:
