@@ -52,6 +52,7 @@ class Contenu(Base):
     texte_genere = Column(Text, nullable=True)
     resume = Column(Text, nullable=True)  # Résumé "Idée" auto-généré
     niveau_strictesse = Column(String(20), nullable=True)  # libre, modere, strict
+    types_faits = Column(String(200), nullable=True)  # faits séparés par virgule: historique,drole,etc.
     date_creation = Column(DateTime, default=datetime.utcnow)
 
     chapitre = relationship("Chapitre", back_populates="contenus")

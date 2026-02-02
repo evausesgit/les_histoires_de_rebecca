@@ -8,7 +8,7 @@ logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 
-def generer_histoire(prompt: str, style: Optional[str] = None, chapitres_precedents: Optional[List[Dict]] = None, niveau_strictesse: str = "modere") -> Dict[str, str]:
+def generer_histoire(prompt: str, style: Optional[str] = None, chapitres_precedents: Optional[List[Dict]] = None, niveau_strictesse: str = "modere", types_faits: Optional[List[str]] = None) -> Dict[str, str]:
     """
     Appelle Claude CLI pour générer une histoire pour enfant.
 
@@ -88,6 +88,21 @@ FIDÉLITÉ MODÉRÉE :
 - Évite d'introduire de nouveaux personnages importants non mentionnés
 - Les ajouts doivent rester cohérents avec ce qui est décrit"""
 
+    # Instructions pour les types de faits (piments)
+    faits_instruction = ""
+    if types_faits and len(types_faits) > 0:
+        faits_descriptions = {
+            "historique": "Intègre naturellement un fait historique réel (événement, personnage historique, invention, découverte) en rapport avec le contexte de l'histoire. Mentionne-le de façon fluide dans la narration.",
+            "imaginaire": "Ajoute un élément fantastique, magique ou surnaturel (créature, pouvoir, objet enchanté, phénomène inexplicable) qui enrichit l'univers de l'histoire.",
+            "effrayant": "Inclus un moment de tension, de suspense ou légèrement effrayant (ombre mystérieuse, bruit inquiétant, situation angoissante) adapté au ton général du récit.",
+            "intrigant": "Introduis un mystère, une énigme ou un élément intrigant (secret à découvrir, comportement étrange, indice cryptique) qui éveille la curiosité du lecteur.",
+            "drole": "Ajoute un moment comique, une situation absurde ou un dialogue humoristique qui apporte de la légèreté à l'histoire."
+        }
+
+        faits_liste = [faits_descriptions.get(f, "") for f in types_faits if f in faits_descriptions]
+        if faits_liste:
+            faits_instruction = "\n\nÉLÉMENTS À INTÉGRER (piments de l'histoire) :\n" + "\n".join(f"- {f}" for f in faits_liste)
+
     prompt_complet = f"""Tu es un auteur de roman.
 {contexte_histoire}
 Génère le prochain chapitre de livre inspiré du thème suivant :
@@ -110,7 +125,7 @@ Règles d'écriture :
 - Utilise un rythme fluide : narration + dialogues + descriptions équilibrés
 - Reste cohérent avec les chapitres précédents : mêmes personnages, lieux, ton, époque, logique interne
 - Les personnages doivent garder leur personnalité et leurs caractéristiques établies
-{strictesse_instruction}
+{strictesse_instruction}{faits_instruction}
 
 === FORMAT DE RÉPONSE ===
 Tu dois répondre en DEUX parties séparées par la ligne "---RESUME---" :

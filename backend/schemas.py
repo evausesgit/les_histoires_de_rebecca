@@ -76,6 +76,7 @@ class ContenuResponse(ContenuBase):
     texte_genere: Optional[str] = None
     resume: Optional[str] = None
     niveau_strictesse: Optional[str] = None
+    types_faits: Optional[str] = None
     date_creation: datetime
 
     class Config:
@@ -86,6 +87,7 @@ class ContenuResponse(ContenuBase):
 class GenerationRequest(BaseModel):
     prompt: str
     niveau_strictesse: Optional[str] = "modere"  # libre, modere, strict
+    types_faits: Optional[list[str]] = []  # historique, imaginaire, effrayant, intrigant, drole
 
 
 class GenerationResponse(BaseModel):

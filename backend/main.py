@@ -264,7 +264,8 @@ def generer_contenu(chapitre_id: int, request: GenerationRequest, db: Session = 
             request.prompt,
             style_description,
             contexte_precedent,
-            request.niveau_strictesse or "modere"
+            request.niveau_strictesse or "modere",
+            request.types_faits or []
         )
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -274,7 +275,8 @@ def generer_contenu(chapitre_id: int, request: GenerationRequest, db: Session = 
         texte_utilisateur=request.prompt,
         texte_genere=resultat["texte"],
         resume=resultat["resume"],
-        niveau_strictesse=request.niveau_strictesse or "modere"
+        niveau_strictesse=request.niveau_strictesse or "modere",
+        types_faits=",".join(request.types_faits) if request.types_faits else None
     )
     db.add(db_contenu)
     db.commit()

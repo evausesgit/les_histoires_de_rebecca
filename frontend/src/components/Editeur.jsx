@@ -7,10 +7,20 @@ const NIVEAUX_STRICTESSE = [
   { id: 'strict', label: 'Strict', description: 'Suit exactement la description' }
 ];
 
+const TYPES_FAITS = [
+  { id: 'historique', label: 'Fait historique', description: 'Événement ou personnage historique réel' },
+  { id: 'imaginaire', label: 'Fait imaginaire', description: 'Élément fantastique ou magique' },
+  { id: 'effrayant', label: 'Fait effrayant', description: 'Moment de suspense ou légèrement effrayant' },
+  { id: 'intrigant', label: 'Fait intrigant', description: 'Mystère ou énigme' },
+  { id: 'drole', label: 'Fait drôle', description: 'Moment comique ou absurde' }
+];
+
 function Editeur({ chapitre, onRetour }) {
   const [contenus, setContenus] = useState([]);
   const [prompt, setPrompt] = useState('');
   const [niveauStrictesse, setNiveauStrictesse] = useState('modere');
+  const [typesFaits, setTypesFaits] = useState([]);
+  const [showFaitsDropdown, setShowFaitsDropdown] = useState(false);
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
   const [expandedPrompts, setExpandedPrompts] = useState({});
@@ -41,8 +51,9 @@ function Editeur({ chapitre, onRetour }) {
 
     setGenerating(true);
     try {
-      await genererHistoire(chapitre.id, prompt, niveauStrictesse);
+      await genererHistoire(chapitre.id, prompt, niveauStrictesse, typesFaits);
       setPrompt('');
+      setTypesFaits([]);
       chargerContenus();
     } catch (error) {
       console.error('Erreur:', error);
@@ -50,6 +61,14 @@ function Editeur({ chapitre, onRetour }) {
     } finally {
       setGenerating(false);
     }
+  };
+
+  const toggleFait = (faitId) => {
+    setTypesFaits(prev =>
+      prev.includes(faitId)
+        ? prev.filter(id => id !== faitId)
+        : [...prev, faitId]
+    );
   };
 
   const handleSupprimer = async (id) => {
@@ -103,6 +122,36 @@ function Editeur({ chapitre, onRetour }) {
           </div>
         </div>
 
+        <div className="faits-selector">
+          <label>Ajouter un piment (optionnel) :</label>
+          <div className="faits-dropdown-container">
+            <button
+              type="button"
+              className="faits-dropdown-trigger"
+              onClick={() => setShowFaitsDropdown(!showFaitsDropdown)}
+            >
+              {typesFaits.length === 0
+                ? 'Aucun'
+                : typesFaits.map(id => TYPES_FAITS.find(f => f.id === id)?.label).join(', ')}
+              <span className="dropdown-arrow">{showFaitsDropdown ? '▲' : '▼'}</span>
+            </button>
+            {showFaitsDropdown && (
+              <div className="faits-dropdown-menu">
+                {TYPES_FAITS.map((fait) => (
+                  <label key={fait.id} className="fait-option" title={fait.description}>
+                    <input
+                      type="checkbox"
+                      checked={typesFaits.includes(fait.id)}
+                      onChange={() => toggleFait(fait.id)}
+                    />
+                    <span>{fait.label}</span>
+                  </label>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
         <button type="submit" disabled={generating}>
           {generating ? 'Claude écrit...' : 'Générer l\'histoire'}
         </button>
@@ -138,6 +187,11 @@ function Editeur({ chapitre, onRetour }) {
                       {NIVEAUX_STRICTESSE.find(n => n.id === contenu.niveau_strictesse)?.label}
                     </span>
                   )}
+                  {contenu.types_faits && contenu.types_faits.split(',').map(faitId => (
+                    <span key={faitId} className="badge-fait">
+                      {TYPES_FAITS.find(f => f.id === faitId)?.label || faitId}
+                    </span>
+                  ))}
                 </div>
                 <button
                   className="btn-supprimer-contenu"
