@@ -100,12 +100,6 @@ class GoogleLoginRequest(BaseModel):
     token: str
 
 
-class TokenResponse(BaseModel):
-    access_token: str
-    token_type: str = "bearer"
-    utilisateur: "UtilisateurResponse"
-
-
 class UtilisateurResponse(BaseModel):
     id: int
     email: str
@@ -116,6 +110,12 @@ class UtilisateurResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+class TokenResponse(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
+    utilisateur: UtilisateurResponse
 
 
 class RoleUpdateRequest(BaseModel):
