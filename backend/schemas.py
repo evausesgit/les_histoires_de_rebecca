@@ -93,3 +93,30 @@ class GenerationRequest(BaseModel):
 class GenerationResponse(BaseModel):
     texte_genere: str
     resume: Optional[str] = None
+
+
+# Auth schemas
+class GoogleLoginRequest(BaseModel):
+    token: str
+
+
+class TokenResponse(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
+    utilisateur: "UtilisateurResponse"
+
+
+class UtilisateurResponse(BaseModel):
+    id: int
+    email: str
+    nom: str
+    photo_url: Optional[str] = None
+    role: str
+    date_creation: datetime
+
+    class Config:
+        from_attributes = True
+
+
+class RoleUpdateRequest(BaseModel):
+    role: str

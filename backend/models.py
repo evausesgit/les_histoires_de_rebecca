@@ -56,3 +56,15 @@ class Contenu(Base):
     date_creation = Column(DateTime, default=datetime.utcnow)
 
     chapitre = relationship("Chapitre", back_populates="contenus")
+
+
+class Utilisateur(Base):
+    __tablename__ = "utilisateurs"
+
+    id = Column(Integer, primary_key=True, index=True)
+    email = Column(String(255), nullable=False, unique=True)
+    nom = Column(String(255), nullable=False)
+    photo_url = Column(String(500), nullable=True)
+    google_id = Column(String(255), nullable=False, unique=True)
+    role = Column(String(20), nullable=False, default="lecteur")  # lecteur, ecrivain, admin
+    date_creation = Column(DateTime, default=datetime.utcnow)

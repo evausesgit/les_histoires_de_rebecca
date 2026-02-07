@@ -8,6 +8,35 @@ const api = axios.create({
   baseURL: API_URL,
 });
 
+// Intercepteur : ajouter le token JWT sur chaque requête
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem('token');
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
+// Intercepteur : supprimer le token si 401
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      localStorage.removeItem('token');
+      localStorage.removeItem('utilisateur');
+    }
+    return Promise.reject(error);
+  }
+);
+
+// Auth
+export const loginGoogle = (token) => api.post('/auth/google', { token });
+export const getMe = () => api.get('/auth/me');
+
+// Admin
+export const getUtilisateurs = () => api.get('/admin/utilisateurs');
+export const modifierRole = (id, role) => api.put(`/admin/utilisateurs/${id}/role`, { role });
+
 // Styles
 export const getStyles = () => api.get('/styles');
 export const creerStyle = (data) => api.post('/styles', data);

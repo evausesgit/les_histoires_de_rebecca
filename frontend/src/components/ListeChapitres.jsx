@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { getChapitres, creerChapitre, supprimerChapitre } from '../services/api';
 
-function ListeChapitres({ livre, onSelectChapitre, onLireChapitre, onRetour }) {
+function ListeChapitres({ livre, onSelectChapitre, onLireChapitre, onRetour, estEcrivain }) {
   const [chapitres, setChapitres] = useState([]);
   const [nouveauTitre, setNouveauTitre] = useState('');
   const [loading, setLoading] = useState(true);
@@ -54,30 +54,41 @@ function ListeChapitres({ livre, onSelectChapitre, onLireChapitre, onRetour }) {
       <h2>{livre.titre}</h2>
       {livre.description && <p className="description">{livre.description}</p>}
 
-      <form onSubmit={handleCreer} className="form-nouveau">
-        <input
-          type="text"
-          placeholder="Titre du nouveau chapitre"
-          value={nouveauTitre}
-          onChange={(e) => setNouveauTitre(e.target.value)}
-        />
-        <button type="submit">Ajouter</button>
-      </form>
+      {estEcrivain && (
+        <form onSubmit={handleCreer} className="form-nouveau">
+          <input
+            type="text"
+            placeholder="Titre du nouveau chapitre"
+            value={nouveauTitre}
+            onChange={(e) => setNouveauTitre(e.target.value)}
+          />
+          <button type="submit">Ajouter</button>
+        </form>
+      )}
 
       <div className="chapitres-liste">
         {chapitres.length === 0 ? (
-          <p className="empty">Aucun chapitre. Ajoute le premier chapitre !</p>
+          <p className="empty">
+            Aucun chapitre.
+            {estEcrivain && ' Ajoute le premier chapitre !'}
+          </p>
         ) : (
           chapitres.map((chapitre) => (
             <div key={chapitre.id} className="chapitre-item">
               <span className="ordre">Chapitre {chapitre.ordre}</span>
-              <h3 onClick={() => onSelectChapitre(chapitre)}>{chapitre.titre}</h3>
+              <h3 onClick={() => estEcrivain ? onSelectChapitre(chapitre) : onLireChapitre(chapitre)}>
+                {chapitre.titre}
+              </h3>
               <div className="actions">
                 <button onClick={() => onLireChapitre(chapitre)} className="btn-lire">Lire</button>
-                <button onClick={() => onSelectChapitre(chapitre)}>Écrire</button>
-                <button onClick={() => handleSupprimer(chapitre.id)} className="danger">
-                  Supprimer
-                </button>
+                {estEcrivain && (
+                  <>
+                    <button onClick={() => onSelectChapitre(chapitre)}>Ecrire</button>
+                    <button onClick={() => handleSupprimer(chapitre.id)} className="danger">
+                      Supprimer
+                    </button>
+                  </>
+                )}
               </div>
             </div>
           ))

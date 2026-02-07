@@ -8,7 +8,7 @@ import os
 
 from sqlalchemy import text
 from database import engine, get_db, Base
-from models import Livre, Chapitre, Contenu, Style
+from models import Livre, Chapitre, Contenu, Style, Utilisateur
 
 
 def migrer_base():
@@ -37,9 +37,14 @@ from schemas import (
     ChapitreCreate, ChapitreResponse,
     ContenuCreate, ContenuResponse,
     GenerationRequest, GenerationResponse,
-    StyleCreate, StyleResponse
+    StyleCreate, StyleResponse,
+    GoogleLoginRequest, TokenResponse, UtilisateurResponse, RoleUpdateRequest
 )
 from claude_service import generer_histoire
+from auth import (
+    verifier_google_token, creer_jwt,
+    require_ecrivain, require_admin
+)
 
 # Création des tables
 Base.metadata.create_all(bind=engine)
@@ -100,6 +105,85 @@ def startup_event():
         db.close()
 
 
+# ==================== AUTHENTIFICATION ====================
+
+@app.post("/auth/google", response_model=TokenResponse)
+def login_google(request: GoogleLoginRequest, db: Session = Depends(get_db)):
+    """Authentification via Google. Le premier utilisateur devient admin."""
+    google_info = verifier_google_token(request.token)
+
+    # Chercher ou créer l'utilisateur
+    utilisateur = db.query(Utilisateur).filter(
+        Utilisateur.google_id == google_info["google_id"]
+    ).first()
+
+    if not utilisateur:
+        # Premier utilisateur = admin
+        nb_utilisateurs = db.query(Utilisateur).count()
+        role = "admin" if nb_utilisateurs == 0 else "lecteur"
+
+        utilisateur = Utilisateur(
+            email=google_info["email"],
+            nom=google_info["nom"],
+            photo_url=google_info["photo_url"],
+            google_id=google_info["google_id"],
+            role=role,
+        )
+        db.add(utilisateur)
+        db.commit()
+        db.refresh(utilisateur)
+    else:
+        # Mettre à jour les infos Google
+        utilisateur.nom = google_info["nom"]
+        utilisateur.photo_url = google_info["photo_url"]
+        db.commit()
+        db.refresh(utilisateur)
+
+    token = creer_jwt(utilisateur.id)
+    return TokenResponse(
+        access_token=token,
+        utilisateur=UtilisateurResponse.model_validate(utilisateur),
+    )
+
+
+@app.get("/auth/me", response_model=UtilisateurResponse)
+def get_me(utilisateur: Utilisateur = Depends(require_ecrivain)):
+    """Retourne l'utilisateur courant (nécessite au moins écrivain)."""
+    return utilisateur
+
+
+# ==================== ADMIN ====================
+
+@app.get("/admin/utilisateurs", response_model=List[UtilisateurResponse])
+def lister_utilisateurs(
+    admin: Utilisateur = Depends(require_admin),
+    db: Session = Depends(get_db),
+):
+    """Liste tous les utilisateurs (admin uniquement)."""
+    return db.query(Utilisateur).order_by(Utilisateur.date_creation).all()
+
+
+@app.put("/admin/utilisateurs/{utilisateur_id}/role")
+def modifier_role(
+    utilisateur_id: int,
+    request: RoleUpdateRequest,
+    admin: Utilisateur = Depends(require_admin),
+    db: Session = Depends(get_db),
+):
+    """Modifie le rôle d'un utilisateur (admin uniquement)."""
+    if request.role not in ("lecteur", "ecrivain", "admin"):
+        raise HTTPException(status_code=400, detail="Role invalide")
+
+    utilisateur = db.query(Utilisateur).filter(Utilisateur.id == utilisateur_id).first()
+    if not utilisateur:
+        raise HTTPException(status_code=404, detail="Utilisateur non trouvé")
+
+    utilisateur.role = request.role
+    db.commit()
+    db.refresh(utilisateur)
+    return UtilisateurResponse.model_validate(utilisateur)
+
+
 # ==================== STYLES ====================
 
 @app.get("/styles", response_model=List[StyleResponse])
@@ -109,7 +193,11 @@ def lister_styles(db: Session = Depends(get_db)):
 
 
 @app.post("/styles", response_model=StyleResponse)
-def creer_style(style: StyleCreate, db: Session = Depends(get_db)):
+def creer_style(
+    style: StyleCreate,
+    _user: Utilisateur = Depends(require_ecrivain),
+    db: Session = Depends(get_db),
+):
     """Crée un nouveau style personnalisé"""
     existing = db.query(Style).filter(Style.nom == style.nom).first()
     if existing:
@@ -123,7 +211,11 @@ def creer_style(style: StyleCreate, db: Session = Depends(get_db)):
 
 
 @app.delete("/styles/{style_id}")
-def supprimer_style(style_id: int, db: Session = Depends(get_db)):
+def supprimer_style(
+    style_id: int,
+    _user: Utilisateur = Depends(require_ecrivain),
+    db: Session = Depends(get_db),
+):
     """Supprime un style personnalisé (les prédéfinis ne peuvent pas être supprimés)"""
     style = db.query(Style).filter(Style.id == style_id).first()
     if not style:
@@ -151,7 +243,11 @@ def lister_livres(db: Session = Depends(get_db)):
 
 
 @app.post("/livres", response_model=LivreResponse)
-def creer_livre(livre: LivreCreate, db: Session = Depends(get_db)):
+def creer_livre(
+    livre: LivreCreate,
+    _user: Utilisateur = Depends(require_ecrivain),
+    db: Session = Depends(get_db),
+):
     """Crée un nouveau livre"""
     if livre.style_id:
         style = db.query(Style).filter(Style.id == livre.style_id).first()
@@ -179,7 +275,11 @@ def obtenir_livre(livre_id: int, db: Session = Depends(get_db)):
 
 
 @app.delete("/livres/{livre_id}")
-def supprimer_livre(livre_id: int, db: Session = Depends(get_db)):
+def supprimer_livre(
+    livre_id: int,
+    _user: Utilisateur = Depends(require_ecrivain),
+    db: Session = Depends(get_db),
+):
     """Supprime un livre et tous ses chapitres"""
     livre = db.query(Livre).filter(Livre.id == livre_id).first()
     if not livre:
@@ -198,7 +298,12 @@ def lister_chapitres(livre_id: int, db: Session = Depends(get_db)):
 
 
 @app.post("/livres/{livre_id}/chapitres", response_model=ChapitreResponse)
-def creer_chapitre(livre_id: int, chapitre: ChapitreCreate, db: Session = Depends(get_db)):
+def creer_chapitre(
+    livre_id: int,
+    chapitre: ChapitreCreate,
+    _user: Utilisateur = Depends(require_ecrivain),
+    db: Session = Depends(get_db),
+):
     """Crée un nouveau chapitre dans un livre"""
     livre = db.query(Livre).filter(Livre.id == livre_id).first()
     if not livre:
@@ -212,7 +317,11 @@ def creer_chapitre(livre_id: int, chapitre: ChapitreCreate, db: Session = Depend
 
 
 @app.delete("/chapitres/{chapitre_id}")
-def supprimer_chapitre(chapitre_id: int, db: Session = Depends(get_db)):
+def supprimer_chapitre(
+    chapitre_id: int,
+    _user: Utilisateur = Depends(require_ecrivain),
+    db: Session = Depends(get_db),
+):
     """Supprime un chapitre"""
     chapitre = db.query(Chapitre).filter(Chapitre.id == chapitre_id).first()
     if not chapitre:
@@ -231,7 +340,12 @@ def lister_contenus(chapitre_id: int, db: Session = Depends(get_db)):
 
 
 @app.post("/chapitres/{chapitre_id}/contenus", response_model=ContenuResponse)
-def creer_contenu(chapitre_id: int, contenu: ContenuCreate, db: Session = Depends(get_db)):
+def creer_contenu(
+    chapitre_id: int,
+    contenu: ContenuCreate,
+    _user: Utilisateur = Depends(require_ecrivain),
+    db: Session = Depends(get_db),
+):
     """Crée un nouveau contenu dans un chapitre"""
     chapitre = db.query(Chapitre).filter(Chapitre.id == chapitre_id).first()
     if not chapitre:
@@ -245,7 +359,11 @@ def creer_contenu(chapitre_id: int, contenu: ContenuCreate, db: Session = Depend
 
 
 @app.delete("/contenus/{contenu_id}")
-def supprimer_contenu(contenu_id: int, db: Session = Depends(get_db)):
+def supprimer_contenu(
+    contenu_id: int,
+    _user: Utilisateur = Depends(require_ecrivain),
+    db: Session = Depends(get_db),
+):
     """Supprime un contenu"""
     contenu = db.query(Contenu).filter(Contenu.id == contenu_id).first()
     if not contenu:
@@ -258,7 +376,12 @@ def supprimer_contenu(contenu_id: int, db: Session = Depends(get_db)):
 # ==================== GÉNÉRATION ====================
 
 @app.post("/chapitres/{chapitre_id}/generer", response_model=ContenuResponse)
-def generer_contenu(chapitre_id: int, request: GenerationRequest, db: Session = Depends(get_db)):
+def generer_contenu(
+    chapitre_id: int,
+    request: GenerationRequest,
+    _user: Utilisateur = Depends(require_ecrivain),
+    db: Session = Depends(get_db),
+):
     """Génère une histoire avec Claude et la sauvegarde dans le chapitre"""
     chapitre = db.query(Chapitre).filter(Chapitre.id == chapitre_id).first()
     if not chapitre:
@@ -313,7 +436,10 @@ def generer_contenu(chapitre_id: int, request: GenerationRequest, db: Session = 
 
 
 @app.post("/generer-preview", response_model=GenerationResponse)
-def generer_preview(request: GenerationRequest):
+def generer_preview(
+    request: GenerationRequest,
+    _user: Utilisateur = Depends(require_ecrivain),
+):
     """Génère une histoire sans la sauvegarder (prévisualisation)"""
     try:
         texte_genere = generer_histoire(request.prompt)

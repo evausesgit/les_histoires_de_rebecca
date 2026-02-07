@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { getLivres, creerLivre, supprimerLivre, getStyles, creerStyle, supprimerStyle } from '../services/api';
 
-function ListeLivres({ onSelectLivre }) {
+function ListeLivres({ onSelectLivre, estEcrivain }) {
   const [livres, setLivres] = useState([]);
   const [styles, setStyles] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -194,16 +194,18 @@ function ListeLivres({ onSelectLivre }) {
     <div className="liste-livres">
       <div className="liste-header">
         <h2>Mes Livres</h2>
-        <button onClick={() => setModeCreation(true)} className="btn-nouveau-livre">
-          + Créer un nouveau livre
-        </button>
+        {estEcrivain && (
+          <button onClick={() => setModeCreation(true)} className="btn-nouveau-livre">
+            + Créer un nouveau livre
+          </button>
+        )}
       </div>
 
       <div className="livres-grid">
         {livres.length === 0 ? (
           <div className="empty-state">
             <p>Aucun livre pour le moment.</p>
-            <p>Commence par créer ton premier livre !</p>
+            {estEcrivain && <p>Commence par créer ton premier livre !</p>}
           </div>
         ) : (
           livres.map((livre) => (
@@ -222,12 +224,14 @@ function ListeLivres({ onSelectLivre }) {
                   <button onClick={(e) => { e.stopPropagation(); onSelectLivre(livre); }}>
                     Ouvrir
                   </button>
-                  <button
-                    onClick={(e) => { e.stopPropagation(); handleSupprimer(livre.id); }}
-                    className="danger"
-                  >
-                    Supprimer
-                  </button>
+                  {estEcrivain && (
+                    <button
+                      onClick={(e) => { e.stopPropagation(); handleSupprimer(livre.id); }}
+                      className="danger"
+                    >
+                      Supprimer
+                    </button>
+                  )}
                 </div>
               </div>
             </div>
